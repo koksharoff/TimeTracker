@@ -1,33 +1,33 @@
-FROM node:20-bullseye-slim AS base
+FROM node:22-bookworm-slim AS base
 
 WORKDIR /app
 
-COPY package*.json tsconfig.json ./
+# Prisma's query engine needs OpenSSL at generate time and at runtime.
+RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
 
-RUN npm install
+COPY package*.json ./
+RUN npm ci
 
 FROM base AS builder
 
 WORKDIR /app
 COPY . ./
 
-RUN npm run build
+RUN npm run build && npm prune --omit=dev
 
-FROM node:20-bullseye-slim AS runtime
+FROM node:22-bookworm-slim AS runtime
 
 WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
+
+ENV NODE_ENV=production
+
 COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
-
-RUN apt-get update && apt-get install -y libssl1.1 && rm -rf /var/lib/apt/lists/*
-RUN npm install --omit=dev
-
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
 COPY --from=builder /app/prisma ./prisma
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node dist/server.js"]
+# Sync the database schema (additive changes only; fails instead of dropping data).
+CMD ["sh", "-c", "npx prisma db push --skip-generate && node dist/server.js"]

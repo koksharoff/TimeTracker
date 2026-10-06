@@ -1,72 +1,37 @@
-# Time Tracker Frontend
+# Time Tracker — Dashboard
 
-Это простой статический фронтенд для просмотра статистики из API.
+A single, dependency-free `index.html`: a minimalist blue-and-white dashboard with a dark theme. In Docker it is served by nginx, which also proxies `/api/*` to the backend, so no CORS setup is needed.
 
-## Как запустить
+See the [root README](../README.md) for the full setup guide.
 
-1. Открой директорию:
+## Run
+
+**With Docker** (from the repository root):
+
+```bash
+docker compose up -d --build
+# http://localhost:8080
+```
+
+**Without Docker:**
 
 ```bash
 cd frontend
+python3 -m http.server 8080
+# http://localhost:8080 — the API is auto-detected at http://localhost:3000
 ```
 
-2. Открой `index.html` прямо в браузере или используй локальный сервер.
+You can also open `index.html` directly from disk. If the API is on another host or port, set it under **Settings** (sliders icon).
 
-### Через Python HTTP сервер
+## What it shows
 
-```bash
-python3 -m http.server 8000
-```
+- KPIs: coding time, tracked commits, developers (and who is coding now), events
+- Developers table: GitHub avatar and name, `@login`, status, coding time, commits, public GitHub commits, top language, machine, last activity
+- Daily activity chart (commit days are marked), languages, projects
+- Recent commits and raw activity
 
-3. Открой в браузере:
+## Files
 
-```
-http://localhost:8000
-```
-
-4. Введи адрес API, например:
-
-```
-http://localhost:3000
-```
-
-## Что показывает
-- Всего минут (`GET /time`)
-- Всего событий (`GET /events`)
-- Количество пользователей (`GET /users`)
-- Фильтрацию событий по выбранному пользователю
-- Список последних событий
-- Список последних временных записей
-
-## Как запустить через Docker
-
-```bash
-cd /Users/koksh/Documents/Projects/time_tracker_coding
-docker-compose up --build
-```
-
-После этого frontend будет доступен по:
-
-```
-http://localhost:8080
-```
-
-API будет доступен по:
-
-```
-http://localhost:3000
-```
-
-Swagger UI:
-
-```
-http://localhost:3000/docs
-```
-
-## Требования
-- `docker-compose` должен быть установлен.
-- Бэкенд и frontend работают в едином Docker-сети, CORS больше не нужен на клиенте.
-
-## Полезное
-- Если API работает на другом порту, поменяй адрес в поле `API URL`.
-- Можно доработать страницу графиками или фильтрами — если нужно, сделаю.
+- `index.html`: the whole app (HTML, CSS, JS). Theme, range, filter and API URL are remembered in `localStorage`.
+- `nginx.conf`: static hosting plus the `/api/` → `backend:3000` proxy.
+- `Dockerfile`: `nginx:alpine` image.

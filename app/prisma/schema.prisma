@@ -24,16 +24,36 @@ model TimeRecord {
 }
 
 model Event {
-  id              Int     @id @default(autoincrement())
-  event           String
-  eventTimestamp  DateTime @map("event_timestamp")
-  elapsedMs       Int      @map("elapsed_ms")
-  activeTimeMs    Int      @map("active_time_ms")
-  filePath        String?  @map("file_path")
-  fileLanguage    String?  @map("file_language")
-  fileName        String?  @map("file_name")
-  workspaceFolder String?  @map("workspace_folder")
-  sessionHostname String   @map("session_hostname")
-  sessionUserName String   @map("session_user_name")
+  id               Int      @id @default(autoincrement())
+  event            String
+  eventTimestamp   DateTime @map("event_timestamp")
+  elapsedMs        Int      @map("elapsed_ms")
+  activeTimeMs     Int      @map("active_time_ms")
+  filePath         String?  @map("file_path")
+  fileLanguage     String?  @map("file_language")
+  fileName         String?  @map("file_name")
+  workspaceFolder  String?  @map("workspace_folder")
+  sessionHostname  String   @map("session_hostname")
+  sessionUserName  String   @map("session_user_name")
   sessionStartedAt DateTime @map("session_started_at")
+  githubLogin      String?  @map("github_login")
+  displayName      String?  @map("display_name")
+
+  @@index([eventTimestamp])
+  @@index([sessionUserName])
+}
+
+model Commit {
+  id              Int      @id @default(autoincrement())
+  hash            String   @unique
+  repository      String
+  branch          String?
+  message         String
+  authoredAt      DateTime @map("authored_at")
+  sessionUserName String   @map("session_user_name")
+  githubLogin     String?  @map("github_login")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([authoredAt])
+  @@index([sessionUserName])
 }

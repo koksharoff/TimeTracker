@@ -28,3 +28,22 @@ test('createTrackingEvent returns a structured local event payload', () => {
 test('getEventLogPath returns a path string', () => {
   assert.equal(typeof extension.getEventLogPath(), 'string');
 });
+
+test('isNewLocalCommit detects a commit made on top of the previous HEAD', () => {
+  const head = { name: 'main', commit: 'aaa' };
+  assert.equal(extension.isNewLocalCommit(head, { parents: ['aaa'], authorEmail: 'me@x.io' }, 'main', 'me@x.io'), true);
+});
+
+test('isNewLocalCommit ignores branch switches, resets and foreign commits', () => {
+  const head = { name: 'main', commit: 'aaa' };
+  assert.equal(extension.isNewLocalCommit(head, { parents: ['aaa'] }, 'feature', null), false);
+  assert.equal(extension.isNewLocalCommit(head, { parents: ['zzz'] }, 'main', null), false);
+  assert.equal(extension.isNewLocalCommit(undefined, { parents: ['aaa'] }, 'main', null), false);
+  assert.equal(extension.isNewLocalCommit(head, { parents: ['aaa'], authorEmail: 'other@x.io' }, 'main', 'me@x.io'), false);
+});
+
+test('tracking events carry profile fields', () => {
+  const payload = extension.createTrackingEvent(null);
+  assert.ok('githubLogin' in payload.session);
+  assert.ok('displayName' in payload.session);
+});

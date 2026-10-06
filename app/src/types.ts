@@ -29,6 +29,16 @@ export interface TrackingSession {
   hostname: string;
   user: string;
   startedAt: string;
+  githubLogin?: string | null;
+  displayName?: string | null;
+}
+
+export interface TrackingCommit {
+  hash: string;
+  repository: string;
+  branch?: string | null;
+  message: string;
+  authoredAt: string;
 }
 
 export interface TrackingEvent {
@@ -38,4 +48,5 @@ export interface TrackingEvent {
   activeTimeMs: number;
   file: TrackingFileInfo | null;
   session: TrackingSession;
+  commit?: TrackingCommit | null;
 }

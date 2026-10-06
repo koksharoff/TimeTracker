@@ -1,70 +1,56 @@
-# Time Tracker — Backend (app)
+# Time Tracker — Backend
 
-Кратко
-- Fastify приложение с OpenAPI/Swagger (доступно по `/docs`).
-- Рекомендуется запускать через Docker для совместимости.
+Fastify + Prisma + PostgreSQL API that stores events from the VS Code extension and serves aggregated stats to the dashboard. OpenAPI docs are at `/docs`.
 
-Локальный запуск (без Docker)
+See the [root README](../README.md) for the full setup guide.
 
-1. Установите зависимости и соберите:
+## Run with Docker (recommended)
+
+From the repository root:
 
 ```bash
-cd app
-npm install
-npm run build
+docker compose up -d --build
+docker compose logs -f backend
 ```
 
-2. Запустить production-сборку:
+## Run locally
 
 ```bash
+docker compose up -d db                     # from the repository root
+cd app
+npm install
+echo 'DATABASE_URL=postgresql://postgres:postgres@localhost:5432/time_tracker?schema=public' > .env
+npx prisma db push                          # create/update tables
+npm run dev                                 # hot reload on http://localhost:3000
+```
+
+Production build:
+
+```bash
+npm run build
 npm run start:prod
 ```
 
-Для разработки (hot reload):
+## Environment
 
-```bash
-npm install
-npm run dev
-```
+| Variable       | Default | Description |
+|----------------|---------|-------------|
+| `DATABASE_URL` | built from `PG*` variables | PostgreSQL connection string |
+| `PORT`         | `3000`  | Listen port |
+| `CORS_ORIGINS` | `http://localhost:8080,http://127.0.0.1:8080` | Comma-separated allowed origins |
+| `GITHUB_TOKEN` | *(empty)* | Optional; raises GitHub API rate limits for `/github/:login` |
 
-Docker (рекомендуется)
+## Routes
 
-Сборка образа (большая совместимость):
-- На Apple Silicon / M1/M2 обычно полезно явно указать платформу `linux/amd64` для совместимости с другими машинами.
+| Route | Purpose |
+|-------|---------|
+| `POST /events`, `GET /events` | Ingest and list raw extension events (commit events also fill the `Commit` table) |
+| `GET /stats/summary` | Dashboard aggregates (`days`, `user`, `tz` query parameters) |
+| `GET /github/:login` | Cached GitHub profile, avatar and public commit count |
+| `GET /health` | Liveness check |
+| `/users`, `/time`, `/smile` | Legacy endpoints |
 
-```bash
-cd app
-docker build --platform=linux/amd64 -t time-tracker-backend:latest .
-```
+## Notes
 
-Запуск контейнера:
-
-```bash
-docker run --name time-tracker-backend -d -p 3000:3000 --restart unless-stopped time-tracker-backend:latest
-```
-
-Проверка логов и статуса:
-
-```bash
-docker ps --filter name=time-tracker-backend
-docker logs -f time-tracker-backend
-```
-
-Остановка и удаление контейнера:
-
-```bash
-docker stop time-tracker-backend
-docker rm time-tracker-backend
-```
-
-Дополнительно
-
-- Порт по умолчанию: `3000` (из Dockerfile). Если нужно другой порт — пробросьте его при запуске контейнера (`-p 8080:3000`) или измените в коде `server.ts`.
-- Для CI/CD: соберите образ в CI и публикуйте в Docker registry (Docker Hub, GitHub Container Registry и т.д.). Для максимальной совместимости указывайте `--platform` и используйте multi-arch сборку (`docker buildx`).
-
-Советы по отладке
-
-- Если сборка TypeScript падает в Docker, собирайте локно и запускайте `npm run build` чтобы увидеть детали. Частая ошибка — использование переменных, объявленных в блоке `try` и используемых в `catch` (это уже исправлено в этом репозитории).
-- Для просмотра OpenAPI UI откройте `http://localhost:3000/docs` после запуска.
-
-Позже добавлю `docker-compose.yml` для локальной разработки с возможностью включать/отключать сервисы (Postgres, redis и т.д.).
+- The schema is applied with `prisma db push` when the container starts. This fits the local, single-user scope; use `prisma migrate` for shared deployments.
+- Stats queries use raw SQL (PostgreSQL-specific) and cap any single gap between events at 5 minutes.

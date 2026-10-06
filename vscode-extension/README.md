@@ -1,73 +1,54 @@
 # Time Tracker — VS Code Extension
 
-Коротко
-- Расширение собирает локальные «heartbeat» события и может отправлять их на бэкенд.
+Tracks your coding time, languages, projects and git commits, and reports them to a self-hosted [Time Tracker](https://github.com/koksh/TimeTracker) backend. Without a backend it still works: every event goes to a local log file.
 
-Локальная установка и разработка
+## Features
 
-1. Установите зависимости:
+- Active coding time per file, language and workspace, with idle detection
+- Automatic commit tracking through VS Code's built-in Git extension
+- GitHub username detected from the GitHub account signed in to VS Code; name from `git config user.name`
+- Offline log at `~/.time-tracker/events.jsonl` (**Time Tracker: Open Local Log File**)
+
+## Install
 
 ```bash
-cd vscode-extension
+code --install-extension time-tracker-vscode-extension-0.2.0.vsix
+```
+
+Or in VS Code: Extensions view → `…` → **Install from VSIX…** → pick the file.
+
+## Configure
+
+```jsonc
+{
+  "timeTracker.backendUrl": "http://localhost:3000/events",
+  "timeTracker.githubUsername": "your-github-login", // optional, auto-detected
+  "timeTracker.displayName": "Your Name"             // optional, defaults to git user.name
+}
+```
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `timeTracker.enabled` | `true` | Turn tracking on or off |
+| `timeTracker.backendUrl` | `""` | Events endpoint; empty = local log only |
+| `timeTracker.intervalSeconds` | `60` | Heartbeat interval while active |
+| `timeTracker.idleTimeoutSeconds` | `300` | Stop counting after this long without activity |
+| `timeTracker.trackCommits` | `true` | Record your commits |
+| `timeTracker.githubUsername` | `""` | GitHub login for avatar and links |
+| `timeTracker.displayName` | `""` | Name shown on the dashboard |
+| `timeTracker.token` | `""` | Bearer token for future multi-user backends |
+| `timeTracker.logFilePath` | `""` | Custom local log path |
+
+## Develop
+
+```bash
 npm install
+npm test           # build + unit tests
+npm run package    # build a .vsix
 ```
 
-2. Постройте расширение (компиляция TypeScript):
+Press **F5** with this folder open to launch an Extension Development Host.
 
-```bash
-npm run build
-```
+## Privacy
 
-3. Открыть в VS Code и запустить в режиме разработки (Extension Development Host):
-
-- Откройте папку `vscode-extension` в VS Code.
-- Нажмите `F5` — откроется новое окно с загруженным расширением.
-
-Установка как .vsix (локально)
-
-1. Установите `vsce` если нужно:
-
-```bash
-npm i -g vsce
-```
-
-2. Запакуйте в `.vsix`:
-
-```bash
-cd vscode-extension
-npm run build
-npx vsce package
-```
-
-3. Установите пакет в VS Code:
-
-```bash
-code --install-extension time-tracker-vscode-extension-0.1.0.vsix
-```
-
-Публикация и доступность для всех
-
-Вариант 1 — Visual Studio Marketplace
-1. Зарегистрируйте издателя на https://dev.azure.com (Visual Studio Marketplace). 
-2. Создайте Personal Access Token (PAT) с правом публикации расширений.
-3. Логин и публикация через `vsce`:
-
-```bash
-npx vsce login <publisher-name>
-# ввести PAT
-npx vsce publish
-```
-
-Вариант 2 — GitHub Releases
-- Собирать `.vsix` и прикреплять к релизу — пользователи могут скачать и установить `.vsix` через `code --install-extension`.
-
-Рекомендации
-- Для отладки используйте `console.log` и `vscode.window.showInformationMessage` в коде расширения.
-- Если хотите автообновления через Marketplace — используйте `vsce publish` и версионирование в `package.json`.
-
-Файлы важные для работы
-- `package.json` — метаданные и команды.
-- `src/` — TypeScript исходники.
-- `out/` — скомпилированный код (после `npm run build`).
-
-Если нужно, могу добавить GitHub Actions workflow для автоматической сборки и публикации `.vsix` при релизе.
+Events contain file paths, language IDs, workspace names, your OS username, hostname and (if available) GitHub login and git name. They are sent only to the `backendUrl` you configure.
