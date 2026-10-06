@@ -1,6 +1,6 @@
 # Time Tracker — VS Code Extension
 
-Tracks your coding time, languages, projects and git commits, and reports them to a self-hosted [Time Tracker](https://github.com/koksh/TimeTracker) backend. Without a backend it still works: every event goes to a local log file.
+Tracks your coding time, languages, projects and git commits, and reports them to a self-hosted [Time Tracker](https://github.com/koksharoff/TimeTracker) backend. Without a backend it still works: every event goes to a local log file.
 
 ## Features
 

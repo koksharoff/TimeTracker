@@ -1,4 +1,32 @@
+# Dependencies
 **/node_modules/
+
+# Build output
 **/dist/
-**/.env
 **/out/
+*.tsbuildinfo
+
+# Environment / secrets (.env holds ports, GITHUB_TOKEN, DATABASE_URL)
+**/.env
+**/.env.*
+!**/.env.example
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editors (keep the extension's launch/tasks config for F5 debugging)
+.idea/
+.vscode/*
+!vscode-extension/.vscode/
+
+# Test coverage
+coverage/
+
+# Extension packages: only the current release is committed (see README)
+vscode-extension/*.vsix
+!vscode-extension/time-tracker-vscode-extension-0.2.0.vsix
